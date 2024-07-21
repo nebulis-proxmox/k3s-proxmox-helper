@@ -1,0 +1,8 @@
+[package]
+name = "k3s-proxmox-helper"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+axum = "0.7.5"
+openssl = "0.10.66"
