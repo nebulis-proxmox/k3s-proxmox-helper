@@ -1,5 +1,3 @@
-use std::path::PathBuf;
-
 use anyhow::Context;
 use axum::{routing::get, Router};
 use clap::Parser;
