@@ -1,11 +1,14 @@
+use std::path::PathBuf;
+
 use anyhow::Context;
 use axum::{routing::get, Router};
 use clap::Parser;
 use config::Config;
 use network_interface::NetworkInterfaceConfig;
 use once_cell::sync::Lazy;
-
+mod certificates;
 mod config;
+mod error;
 
 static CONFIG: Lazy<Config> = Lazy::new(|| Config::parse());
 
@@ -34,7 +37,9 @@ fn get_exposed_address() -> anyhow::Result<(std::net::IpAddr, u16)> {
 async fn main() -> anyhow::Result<()> {
     let address_to_listen = get_exposed_address()?;
 
-    let app = Router::new().route("/", get(|| async { "Hello, World!" }));
+    let app= Router::new()
+        .nest("/certificates", certificates::create_router())
+        .route("/", get(|| async { "Hello, World!" }));
 
     let listener = tokio::net::TcpListener::bind(address_to_listen).await?;
 
