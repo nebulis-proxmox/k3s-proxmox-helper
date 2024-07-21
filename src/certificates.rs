@@ -147,10 +147,7 @@ pub(crate) async fn generate_certificate(
 
     let certificate_pem = std::fs::read_to_string(&certificate_path)?;
 
-    let certificate_chain = format!(
-        "{}{}{}",
-        root_ca_pem, intermediate_ca_pem, certificate_pem
-    );
+    let certificate_chain = format!("{certificate_pem}{intermediate_ca_pem}{root_ca_pem}");
 
     Ok(Json(GenerateCertificateResponse {
         private_key,
