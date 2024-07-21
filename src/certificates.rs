@@ -24,7 +24,6 @@ pub(crate) async fn generate_certificate(
     Json(request): Json<GenerateCertificateRequest>,
 ) -> AppResult<Json<GenerateCertificateResponse>> {
     let temp_dir = Temp::new_dir()?;
-    let temp_dir = temp_dir.release();
 
     let ca_paths = PathBuf::from(&CONFIG.certificates_path);
 
