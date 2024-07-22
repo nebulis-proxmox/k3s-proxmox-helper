@@ -146,6 +146,10 @@ async fn get_node_token(
                         ipam.ip
                     ))
                     .arg(&token_path)
+                    .arg("-o")
+                    .arg("StrictHostKeyChecking=no")
+                    .arg("-o")
+                    .arg("UserKnownHostsFile=/dev/null")
                     .output()
                     .await?;
 
