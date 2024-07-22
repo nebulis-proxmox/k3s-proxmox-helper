@@ -141,15 +141,15 @@ async fn get_node_token(
                 let token_path = temp.join("token").as_path().display().to_string().clone();
 
                 Command::new("scp")
+                    .arg("-o")
+                    .arg("StrictHostKeyChecking=no")
+                    .arg("-o")
+                    .arg("UserKnownHostsFile=/dev/null")
                     .arg(format!(
                         "root@{}:/var/lib/rancher/k3s/server/token",
                         ipam.ip
                     ))
                     .arg(&token_path)
-                    .arg("-o")
-                    .arg("StrictHostKeyChecking=no")
-                    .arg("-o")
-                    .arg("UserKnownHostsFile=/dev/null")
                     .output()
                     .await?;
 
