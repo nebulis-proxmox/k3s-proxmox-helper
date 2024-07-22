@@ -45,7 +45,9 @@ pub struct VirtualMachineEntry {
     pub template: Option<u8>,
 }
 
-pub(crate) async fn get_nodes(client: reqwest::Client) -> anyhow::Result<ProxmoxData<Vec<NodeEntry>>> {
+pub(crate) async fn get_nodes(
+    client: reqwest::Client,
+) -> anyhow::Result<ProxmoxData<Vec<NodeEntry>>> {
     Ok(client
         .get(format!("{}/api2/json/nodes", &CONFIG.proxmox_api_url))
         .send()
@@ -163,8 +165,30 @@ async fn get_node_token(
     Err(anyhow::Error::msg("VM not found").into())
 }
 
+async fn get_current_node_id(
+    ConnectInfo(addr): ConnectInfo<SocketAddr>,
+    State(client): State<reqwest::Client>,
+) -> AppResult<String> {
+    let nodes = get_nodes(client.clone()).await?.data;
+
+    for node in nodes {
+        let ipams = get_ipams_for_node(client.clone(), &node.node).await?.data;
+
+        if let Some(ip) = ipams
+            .iter()
+            .filter(|ipam| ipam.vmid.is_some())
+            .find(|ipam| addr.ip().to_string() == ipam.ip)
+        {
+            return Ok(ip.vmid.clone().unwrap());
+        }
+    }
+
+    Err(anyhow::Error::msg("VM not found").into())
+}
+
 pub(crate) fn create_router() -> Router<reqwest::Client> {
     Router::new()
         .route("/nodes", get(get_nodes_infos))
+        .route("/current", get(get_current_node_id))
         .route("/:vmid/token", get(get_node_token))
 }
