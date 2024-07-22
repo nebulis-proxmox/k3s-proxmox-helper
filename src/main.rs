@@ -166,6 +166,7 @@ async fn proxy_k8s_servers(rx: watch::Receiver<Vec<IpamEntry>>) -> anyhow::Resul
             let mut egress = if let Some(egress) = egress {
                 egress
             } else {
+                drop(ingress);
                 panic!("Impossible to connect to any k3s-server");
             };
 
