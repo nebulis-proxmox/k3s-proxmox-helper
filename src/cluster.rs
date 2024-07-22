@@ -11,41 +11,41 @@ use tokio::process::Command;
 
 use crate::{error::AppResult, models::ProxmoxData, CONFIG};
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct IpamEntry {
-    zone: String,
-    hostname: Option<String>,
-    vmid: Option<String>,
-    vnet: String,
-    ip: String,
-    mac: Option<String>,
-    subnet: String,
+    pub zone: String,
+    pub hostname: Option<String>,
+    pub vmid: Option<String>,
+    pub vnet: String,
+    pub ip: String,
+    pub mac: Option<String>,
+    pub subnet: String,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct NodeEntry {
-    cpu: f64,
-    maxcpu: i32,
-    mem: i64,
-    maxmem: i64,
-    disk: i64,
-    maxdisk: i64,
-    uptime: i64,
-    status: String,
-    node: String,
-    level: String,
-    ssl_fingerprint: String,
+    pub cpu: f64,
+    pub maxcpu: i32,
+    pub mem: i64,
+    pub maxmem: i64,
+    pub disk: i64,
+    pub maxdisk: i64,
+    pub uptime: i64,
+    pub status: String,
+    pub node: String,
+    pub level: String,
+    pub ssl_fingerprint: String,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct VirtualMachineEntry {
-    status: String,
-    vmid: i64,
-    name: String,
-    template: Option<u8>,
+    pub status: String,
+    pub vmid: i64,
+    pub name: String,
+    pub template: Option<u8>,
 }
 
-async fn get_nodes(client: reqwest::Client) -> anyhow::Result<ProxmoxData<Vec<NodeEntry>>> {
+pub(crate) async fn get_nodes(client: reqwest::Client) -> anyhow::Result<ProxmoxData<Vec<NodeEntry>>> {
     Ok(client
         .get(format!("{}/api2/json/nodes", &CONFIG.proxmox_api_url))
         .send()
@@ -55,7 +55,7 @@ async fn get_nodes(client: reqwest::Client) -> anyhow::Result<ProxmoxData<Vec<No
         .await?)
 }
 
-async fn get_ipams_for_node<S: AsRef<str>>(
+pub(crate) async fn get_ipams_for_node<S: AsRef<str>>(
     client: reqwest::Client,
     node: S,
 ) -> anyhow::Result<ProxmoxData<Vec<IpamEntry>>> {
@@ -72,7 +72,7 @@ async fn get_ipams_for_node<S: AsRef<str>>(
         .await?)
 }
 
-async fn get_all_vms_for_node<S: AsRef<str>>(
+pub(crate) async fn get_all_vms_for_node<S: AsRef<str>>(
     client: reqwest::Client,
     node: S,
 ) -> anyhow::Result<ProxmoxData<Vec<VirtualMachineEntry>>> {
