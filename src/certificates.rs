@@ -156,6 +156,6 @@ pub(crate) async fn generate_certificate(
     }))
 }
 
-pub(crate) fn create_router() -> Router {
+pub(crate) fn create_router() -> Router<reqwest::Client> {
     Router::new().route("/generate", post(generate_certificate))
 }
