@@ -116,7 +116,7 @@ async fn get_nodes_infos(
                                 .clone()
                                 .is_some_and(|vmid| vmid == v.vmid.to_string())
                         })
-                        .is_some_and(|v| v.template.is_none())
+                        .is_some_and(|v| v.template.is_none() && v.status == "running")
                 }),
         );
     }
