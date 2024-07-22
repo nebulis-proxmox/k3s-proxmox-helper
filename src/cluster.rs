@@ -1,12 +1,13 @@
 use std::net::SocketAddr;
 
 use axum::{
-    extract::{ConnectInfo, State},
-    http::request,
+    extract::{ConnectInfo, Path, State},
     routing::get,
     Json, Router,
 };
+use mktemp::Temp;
 use serde::{Deserialize, Serialize};
+use tokio::process::Command;
 
 use crate::{error::AppResult, models::ProxmoxData, CONFIG};
 
@@ -124,6 +125,42 @@ async fn get_nodes_infos(
     Ok(Json(ipams))
 }
 
+async fn get_node_token(
+    Path(vm_id): Path<String>,
+    State(client): State<reqwest::Client>,
+) -> AppResult<String> {
+    let nodes = get_nodes(client.clone()).await?.data;
+
+    for node in nodes {
+        let ipams = get_ipams_for_node(client.clone(), &node.node).await?.data;
+
+        for ipam in ipams {
+            if ipam.vmid.is_some_and(|ipam_vmid| ipam_vmid == vm_id) {
+                let temp = Temp::new_dir()?;
+
+                let token_path = temp.join("token").as_path().display().to_string().clone();
+
+                Command::new("scp")
+                    .arg(format!(
+                        "root@{}:/var/lib/rancher/k3s/server/token",
+                        ipam.ip
+                    ))
+                    .arg(&token_path)
+                    .output()
+                    .await?;
+
+                let token = std::fs::read_to_string(&token_path)?;
+
+                return Ok(token);
+            }
+        }
+    }
+
+    Err(anyhow::Error::msg("VM not found").into())
+}
+
 pub(crate) fn create_router() -> Router<reqwest::Client> {
-    Router::new().route("/nodes", get(get_nodes_infos))
+    Router::new()
+        .route("/nodes", get(get_nodes_infos))
+        .route("/:vmid/token", get(get_node_token))
 }
